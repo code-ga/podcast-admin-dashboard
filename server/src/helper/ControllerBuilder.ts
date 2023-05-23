@@ -1,45 +1,45 @@
 import { z } from 'zod';
-import { ControllerType, HandlerFunctionType } from './ControllerHelper';
+import {
+	ControllerType,
+	HandlerFunctionType,
+	RequestInput,
+} from './ControllerHelper';
 
-export class ControllerBuilder<BT, QT, PT, auth = false> {
-	RequestBody?: z.ZodType<BT>;
-	RequestQuery?: z.ZodType<QT>;
-	RequestParam?: z.ZodType<PT>;
+export class ControllerBuilder<
+	BT extends z.ZodRawShape,
+	QT extends z.ZodRawShape,
+	PT extends z.ZodRawShape,
+	auth = false
+> {
+	RequestBody?: RequestInput<BT>;
+	RequestQuery?: RequestInput<QT>;
+	RequestParam?: RequestInput<PT>;
 	public handlerFunction: HandlerFunctionType<BT, QT, PT>;
 	constructor(public ControllerName: string) {}
 
 	setRequestBodyType<T extends z.ZodRawShape>(
 		t: T
 	): ControllerBuilder<T, QT, PT> {
-		const newBuilder: ControllerBuilder<T, QT, PT> = {
-			...this,
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			///@ts-ignore
-			RequestBody: z.object(t),
-		};
-		return newBuilder;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		///@ts-ignore
+		this.RequestBody = z.object(t);
+		return this as unknown as ControllerBuilder<T, QT, PT>;
 	}
 	setRequestQueryType<T extends z.ZodRawShape>(
 		t: T
 	): ControllerBuilder<BT, T, PT> {
-		const newBuilder: ControllerBuilder<BT, T, PT> = {
-			...this,
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			///@ts-ignore
-			RequestQuery: z.object(t),
-		};
-		return newBuilder;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		///@ts-ignore
+		this.RequestQuery = z.object(t);
+		return this as unknown as ControllerBuilder<BT, T, PT>;
 	}
 	setRequestParamType<T extends z.ZodRawShape>(
 		t: T
 	): ControllerBuilder<BT, QT, T> {
-		const newBuilder: ControllerBuilder<BT, QT, T> = {
-			...this,
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			///@ts-ignore
-			RequestParam: z.object(t),
-		};
-		return newBuilder;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		///@ts-ignore
+		this.RequestParam = z.object(t);
+		return this as unknown as ControllerBuilder<BT, QT, T>;
 	}
 
 	addHandlerFunction(fn: HandlerFunctionType<BT, QT, PT>) {

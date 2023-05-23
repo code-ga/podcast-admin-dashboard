@@ -1,6 +1,8 @@
 // Source from sharproject/sharchat
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import express from 'express';
+import z from 'zod';
+import { ZodParseOutputType } from '../helper/ControllerHelper';
 
 interface BaseResponseLocals {}
 
@@ -21,14 +23,14 @@ export type Response<auth = false, ResBody = unknown> = express.Response<
 
 export type Request<
 	auth = false,
-	ReqParam = unknown,
+	ReqParam extends z.ZodRawShape = Record<string, z.ZodTypeAny>,
 	ResBody = unknown,
-	ReqBody = unknown,
-	ReqQuery = unknown
+	ReqBody extends z.ZodRawShape = Record<string, z.ZodTypeAny>,
+	ReqQuery extends z.ZodRawShape = Record<string, z.ZodTypeAny>
 > = express.Request<
-	ReqParam,
+	ZodParseOutputType<ReqParam>,
 	ResBody,
-	ReqBody,
-	ReqQuery,
+	ZodParseOutputType<ReqBody>,
+	ZodParseOutputType<ReqQuery>,
 	ResponseLocalData<auth>
 >;

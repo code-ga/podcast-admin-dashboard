@@ -5,12 +5,22 @@
 import { NextFunction } from 'express';
 import { Response, Request } from '../typings/ResponseInput';
 import { Router } from 'express';
-import z from 'zod';
+import z, { baseObjectInputType, baseObjectOutputType, objectUtil } from 'zod';
 import { BasicMiddleware } from '../middlewares/basic';
 
-type RequestInput<T> = z.ZodSchema<T>;
+export type RequestInput<T extends z.ZodRawShape> = z.ZodObject<
+	T,
+	'strip',
+	z.ZodTypeAny,
+	ZodParseOutputType<T>,
+	{ [k_2 in keyof baseObjectInputType<T>]: baseObjectInputType<T>[k_2] }
+>;
 
-export interface ControllerInformation<BT, QT, PT> {
+export interface ControllerInformation<
+	BT extends z.ZodRawShape,
+	QT extends z.ZodRawShape,
+	PT extends z.ZodRawShape
+> {
 	RequestBody?: RequestInput<BT>;
 	RequestQuery?: RequestInput<QT>;
 	RequestParam?: RequestInput<PT>;
@@ -23,15 +33,25 @@ export interface ControllerInformation<BT, QT, PT> {
 	SkipMiddlewareName?: string[];
 }
 
-
-export type HandlerFunctionType<BT, QT, PT, auth = false, TResponse = unknown> = (
+export type HandlerFunctionType<
+	BT extends z.ZodRawShape,
+	QT extends z.ZodRawShape,
+	PT extends z.ZodRawShape,
+	auth = false,
+	TResponse = unknown
+> = (
 	req: Request<auth, PT, TResponse, BT, QT>,
 	res: Response<auth, TResponse>,
 	next: NextFunction
 ) => Promise<any> | any | unknown | void | null | undefined;
 
-export interface ControllerType<BT, QT, PT, auth = false, TResponse = unknown>
-	extends ControllerInformation<BT, QT, PT> {
+export interface ControllerType<
+	BT extends z.ZodRawShape,
+	QT extends z.ZodRawShape,
+	PT extends z.ZodRawShape,
+	auth = false,
+	TResponse = unknown
+> extends ControllerInformation<BT, QT, PT> {
 	(
 		req: Request<auth, PT, TResponse, BT, QT>,
 		res: Response<auth, TResponse>,
@@ -254,8 +274,8 @@ export class Controller {
 	}
 }
 
-type CheckRequestInputResponse<T> = [
-	T | null | undefined,
+type CheckRequestInputResponse<T extends z.ZodRawShape> = [
+	T | ZodParseOutputType<T> | null | undefined,
 	(
 		| {
 				status: number;
@@ -265,8 +285,24 @@ type CheckRequestInputResponse<T> = [
 		| undefined
 	)
 ];
-
-function CheckRequestInput<T>(
+export type ZodParseOutputType<T extends z.ZodRawShape> = {
+	[k_1 in keyof objectUtil.addQuestionMarks<
+		baseObjectOutputType<T>,
+		{
+			[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
+				? never
+				: k;
+		}[keyof T]
+	>]: objectUtil.addQuestionMarks<
+		baseObjectOutputType<T>,
+		{
+			[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
+				? never
+				: k;
+		}[keyof T]
+	>[k_1];
+};
+function CheckRequestInput<T extends z.ZodRawShape>(
 	Types: RequestInput<T>,
 	Data: unknown
 ): CheckRequestInputResponse<T> {
@@ -280,6 +316,8 @@ function CheckRequestInput<T>(
 			},
 		];
 	}
-
+	requestBody.data;
 	return [requestBody.data, null];
 }
+
+z.object({ data: z.string() });

@@ -12,7 +12,7 @@ const GetPlaylist = new ControllerBuilder('/')
 	.setRequestQueryType({
 		data: z.string(),
 	})
-	.addHandlerFunction((req, res, next) => {
+	.addHandlerFunction((req, _res, _next) => {
 		req.params.data;
 	})
 	.finish();
