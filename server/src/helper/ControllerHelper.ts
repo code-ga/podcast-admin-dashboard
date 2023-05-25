@@ -16,6 +16,13 @@ export type RequestInput<T extends z.ZodRawShape> = z.ZodObject<
 	{ [k_2 in keyof baseObjectInputType<T>]: baseObjectInputType<T>[k_2] }
 >;
 
+export type ControllerRequestMethod =
+	| 'get'
+	| 'post'
+	| 'put'
+	| 'delete'
+	| 'patch';
+
 export interface ControllerInformation<
 	BT extends z.ZodRawShape,
 	QT extends z.ZodRawShape,
@@ -26,7 +33,7 @@ export interface ControllerInformation<
 	RequestParam?: RequestInput<PT>;
 	// will not use if that is middleware recommend fill it empty
 	ControllerName: string;
-	RequestMethod?: 'get' | 'post' | 'put' | 'delete' | 'patch';
+	RequestMethod?: ControllerRequestMethod;
 	BlockOtherMiddleware?: boolean;
 	spacingName?: string;
 	description?: string;
@@ -37,23 +44,35 @@ export type HandlerFunctionType<
 	BT extends z.ZodRawShape,
 	QT extends z.ZodRawShape,
 	PT extends z.ZodRawShape,
-	auth = false,
-	TResponse = unknown
+	TResponse,
+	auth = false
 > = (
-	req: Request<auth, PT, TResponse, BT, QT>,
+	req: Request<
+		auth,
+		ZodParseOutputType<PT>,
+		TResponse,
+		ZodParseOutputType<BT>,
+		ZodParseOutputType<QT>
+	>,
 	res: Response<auth, TResponse>,
 	next: NextFunction
 ) => Promise<any> | any | unknown | void | null | undefined;
 
 export interface ControllerType<
-	BT extends z.ZodRawShape,
-	QT extends z.ZodRawShape,
-	PT extends z.ZodRawShape,
-	auth = false,
-	TResponse = unknown
+	BT extends z.ZodRawShape = AnyRecord,
+	QT extends z.ZodRawShape = AnyRecord,
+	PT extends z.ZodRawShape = AnyRecord,
+	TResponse = unknown,
+	auth = false
 > extends ControllerInformation<BT, QT, PT> {
 	(
-		req: Request<auth, PT, TResponse, BT, QT>,
+		req: Request<
+			auth,
+			ZodParseOutputType<PT>,
+			ZodParseOutputType<TResponse>,
+			ZodParseOutputType<BT>,
+			ZodParseOutputType<QT>
+		>,
 		res: Response<auth, TResponse>,
 		next: NextFunction
 	): Promise<any> | any | unknown | void | null | undefined;
@@ -142,6 +161,8 @@ export var ControllerDocumentRouterHandler = new ControllerDocument([]);
 
 export const DefaultMiddleware: TControllerMiddlewareFn[] = [BasicMiddleware];
 
+export type AnyRecord = z.ZodRawShape;
+
 export class Controller {
 	controllers: Map<string, ControllerType<any, any, any>>;
 	allMiddleware: TControllerMiddlewareFn[];
@@ -151,7 +172,7 @@ export class Controller {
 		public subController: Controller[] = [],
 		public SkipMiddlewareName: string[] = []
 	) {
-		this.controllers = new Map<string, ControllerType<any, any, any>>();
+		this.controllers = new Map();
 		this.allMiddleware = [...DefaultMiddleware];
 		for (const c of controller) {
 			this.controllers.set(c.ControllerName, c);
@@ -197,7 +218,7 @@ export class Controller {
 		});
 	}
 	checkRequestBody(req: Request, res: Response<false>, next: NextFunction) {
-		const controller = this.controllers.get(req.url);
+		const controller = this.controllers.get(req.path);
 		if (!controller) {
 			res.status(400).json({
 				message: 'Controller not found',
@@ -217,7 +238,7 @@ export class Controller {
 		next();
 	}
 	checkRequestQuery(req: Request, res: Response<false>, next: NextFunction) {
-		const controller = this.controllers.get(req.url);
+		const controller = this.controllers.get(req.path);
 		if (!controller) {
 			res.status(400).json({
 				message: 'Controller not found',
@@ -237,7 +258,7 @@ export class Controller {
 		next();
 	}
 	checkRequestParam(req: Request, res: Response<false>, next: NextFunction) {
-		const controller = this.controllers.get(req.url);
+		const controller = this.controllers.get(req.path);
 		if (!controller) {
 			res.status(400).json({
 				message: 'Controller not found',
@@ -275,7 +296,7 @@ export class Controller {
 }
 
 type CheckRequestInputResponse<T extends z.ZodRawShape> = [
-	T | ZodParseOutputType<T> | null | undefined,
+	ZodParseOutputType<T> | null | undefined,
 	(
 		| {
 				status: number;
@@ -285,23 +306,25 @@ type CheckRequestInputResponse<T extends z.ZodRawShape> = [
 		| undefined
 	)
 ];
-export type ZodParseOutputType<T extends z.ZodRawShape> = {
-	[k_1 in keyof objectUtil.addQuestionMarks<
-		baseObjectOutputType<T>,
-		{
-			[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
-				? never
-				: k;
-		}[keyof T]
-	>]: objectUtil.addQuestionMarks<
-		baseObjectOutputType<T>,
-		{
-			[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
-				? never
-				: k;
-		}[keyof T]
-	>[k_1];
-};
+export type ZodParseOutputType<T> = T extends z.ZodRawShape
+	? {
+			[k_1 in keyof objectUtil.addQuestionMarks<
+				baseObjectOutputType<T>,
+				{
+					[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
+						? never
+						: k;
+				}[keyof T]
+			>]: objectUtil.addQuestionMarks<
+				baseObjectOutputType<T>,
+				{
+					[k in keyof baseObjectOutputType<T>]: undefined extends baseObjectOutputType<T>[k]
+						? never
+						: k;
+				}[keyof T]
+			>[k_1];
+	  }
+	: T;
 function CheckRequestInput<T extends z.ZodRawShape>(
 	Types: RequestInput<T>,
 	Data: unknown

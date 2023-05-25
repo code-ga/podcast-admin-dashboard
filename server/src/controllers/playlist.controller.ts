@@ -2,19 +2,24 @@ import { z } from 'zod';
 import { Controller } from '../helper/ControllerHelper';
 import { ControllerBuilder } from '../helper/ControllerBuilder';
 
-const GetPlaylist = new ControllerBuilder('/')
-	.setRequestBodyType({
-		data: z.string(),
-	})
-	.setRequestParamType({
-		data: z.string(),
-	})
+const GetPlaylist = new ControllerBuilder('/').setRequestMethod('get').finish();
+
+const GetSong = new ControllerBuilder('/')
+	.setRequestMethod('get')
 	.setRequestQueryType({
-		data: z.string(),
+		song_id: z.string(),
 	})
-	.addHandlerFunction((req, _res, _next) => {
-		req.params.data;
+	.setTResponseType<{ song_id: string }>()
+	.addHandlerFunction((req, res) => {
+		res.send({ song_id: req.query.song_id });
 	})
 	.finish();
 
-export const playlistController = new Controller([GetPlaylist], '/playlist');
+const CreatePlaylist = new ControllerBuilder('/')
+	.setRequestMethod('post')
+	.finish();
+
+export const playlistController = new Controller(
+	[GetPlaylist, CreatePlaylist, GetSong],
+	'/playlist'
+);

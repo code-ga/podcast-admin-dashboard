@@ -1,10 +1,11 @@
 // Source from sharproject/sharchat
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import express from 'express';
-import z from 'zod';
-import { ZodParseOutputType } from '../helper/ControllerHelper';
+import { Low } from 'lowdb/lib';
 
-interface BaseResponseLocals {}
+interface BaseResponseLocals {
+	LowDB: Low<unknown>;
+}
 
 interface ResponseLocalDataWhenAuth extends BaseResponseLocals {
 	userId?: string;
@@ -23,14 +24,14 @@ export type Response<auth = false, ResBody = unknown> = express.Response<
 
 export type Request<
 	auth = false,
-	ReqParam extends z.ZodRawShape = Record<string, z.ZodTypeAny>,
+	ReqParam = unknown,
 	ResBody = unknown,
-	ReqBody extends z.ZodRawShape = Record<string, z.ZodTypeAny>,
-	ReqQuery extends z.ZodRawShape = Record<string, z.ZodTypeAny>
+	ReqBody = unknown,
+	ReqQuery = unknown
 > = express.Request<
-	ZodParseOutputType<ReqParam>,
+	ReqParam,
 	ResBody,
-	ZodParseOutputType<ReqBody>,
-	ZodParseOutputType<ReqQuery>,
+	ReqBody,
+	ReqQuery,
 	ResponseLocalData<auth>
 >;
