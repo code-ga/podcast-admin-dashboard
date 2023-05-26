@@ -1,27 +1,81 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { uuidv4 } from "~/utils/uuid";
+import { getBaseUrl } from "~/utils/getBaseUrl";
+import { kv } from "@vercel/kv";
+
+export const CreatePlaylistInput = z.object({
+  title: z.string(),
+  description: z.string(),
+  image: z.object({
+    url: z.string(),
+    title: z.string().default("Playlist Thumbnail"),
+  }),
+  generator: z.string().default("Podcast Admin Dashboard"),
+  lastBuildDate: z.date().default(new Date()),
+  author: z.string(),
+  copyright: z.string(),
+  language: z.string().default("vi"),
+  "itunes:explicit": z.enum(["Yes", "No"]).default("No"),
+});
+
+// export const updatePlaylistInput = CreatePlaylistInput.partial();
+
+export const CreatePlaylistDBSaveType = CreatePlaylistInput.extend({
+  "atom:link": z.string(),
+  "itunes:author": z.string(),
+  "itunes:summary": z.string(),
+  "itunes:type": z.string(),
+  "itunes:owner": z.object({
+    "itunes:name": z.string(),
+    "itunes:email": z.string(),
+  }),
+  "itunes:image": z.object({
+    title: z.string(),
+    url: z.string(),
+  }),
+});
 
 export const playlistRouter = createTRPCRouter({
   create: publicProcedure
-    .input(
+    .input(CreatePlaylistInput)
+    .output(
       z.object({
-        title: z.string(),
-        description: z.string(),
-        image: z.object({
-          url: z.string(),
-          title: z.string(),
-        }),
-        generator: z.string().default("Podcast Admin Dashboard"),
-        lastBuildDate: z.date().default(new Date()),
+        id: z.string(),
+        createData: CreatePlaylistDBSaveType,
       })
     )
-    .mutation(({ input }) => {
-        const createData = {
-          ...input,
-          "atom:link": "lastBuildDate",
-        };
-      return {
-        greeting: ``,
+    .mutation(async ({ input }) => {
+      const playlistID = uuidv4();
+      const createData: z.infer<typeof CreatePlaylistDBSaveType> = {
+        ...input,
+        "atom:link": `${getBaseUrl()}/api/rss/${playlistID}`,
+        "itunes:author": input.author,
+        "itunes:summary": input.description,
+        "itunes:type": "episodic",
+        "itunes:owner": {
+          "itunes:name": input.author,
+          "itunes:email": "<need from input>",
+        },
+        // itunes:category
+        "itunes:image": input.image,
       };
+      const kv_key = `playlist_${playlistID}`;
+      await kv.hset(kv_key, createData);
+      await kv.rpush("playlists", kv_key);
+      return {
+        id: playlistID,
+        createData,
+      };
+    }),
+  getAllPlaylist: publicProcedure.query(async () => {
+    return (await kv.get<string[]>("playlists")) ?? [];
+  }),
+  getPlaylistById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      return await kv.hgetall<z.infer<typeof CreatePlaylistDBSaveType>>(
+        `playlist_${input.id}`
+      );
     }),
 });
