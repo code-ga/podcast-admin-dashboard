@@ -1,0 +1,1 @@
+last vercel build command : npx prisma generate && next build
