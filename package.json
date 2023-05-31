@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run prisma:generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:migrate:dev": "prisma migrate dev --name init",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "prisma:generate":"prisma generate",
+    "postinstall": "npm run prisma:generate"
   },
   "dependencies": {
     "@prisma/client": "^4.15.0",
