@@ -1,5 +1,5 @@
-import { ShowPlaylistInfo } from "../../components/ShowPlaylist";
-import { prisma } from "../../db";
+import { ShowPlaylistInfo } from "~/components/ShowPlaylist";
+import { prisma } from "~/db";
 
 export default async function ListPlaylist() {
   const playlist = await prisma.playlist.findMany({

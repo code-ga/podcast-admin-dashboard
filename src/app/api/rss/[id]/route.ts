@@ -1,18 +1,17 @@
 "use server";
-import { NextResponse } from "next/server";
-import { prisma } from "../../../../db";
+import { NextResponse,NextRequest } from "next/server";
+import { prisma } from "~/db";
 import { Podcast } from "podcast";
-import { SITE_URL } from "../../../../util/siteUrl";
+import { SITE_URL } from "~/util/siteUrl";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   {
     params,
   }: {
     params: { id: string };
   }
 ) {
-  
   const playlistId = params.id; // 'a', 'b', or 'c'
   const playlist = await prisma.playlist.findUnique({
     where: {
