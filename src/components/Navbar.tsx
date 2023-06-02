@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 export function Navbar() {
   return (
-    <header className="flex items-center justify-between px-10 m-5 my-10 text-white bg-indigo-900 border rounded-2xl">
+    <header className="flex items-center justify-between px-10 bg-indigo-900 border rounded-2xl">
       <Image
         src={Logo}
         alt={""}
@@ -37,11 +37,16 @@ const Item: React.FC<React.PropsWithChildren> = ({ children }) => {
 };
 
 const LinkButton: React.FC<React.PropsWithChildren<{ path: string }>> = ({
-  children,path
+  children,
+  path,
 }) => {
   const pathname = usePathname();
   return (
-    <button className={`p-1 px-2 m-1.5 rounded-xl hover:bg-slate-500 ${pathname== path ? "bg-slate-500":""}`}>
+    <button
+      className={`p-1 px-2 m-1.5 rounded-xl hover:bg-slate-500 ${
+        pathname.startsWith(path) ? "bg-slate-500" : ""
+      }`}
+    >
       {children}
     </button>
   );

@@ -1,34 +1,69 @@
+import { FeedItunesType } from "@prisma/client";
 import { prisma } from "~/db";
 
-const PodcastAuthor = "Code-ga";
-const PodcastAuthorEmail = "code-ga@gmail.com";
-const PodcastThumbnail = "https://cdn.discordapp.com/embed/avatars/2.png";
-async () => {
+type PodcastInfo = {
+  title: string;
+  description: string;
+  podcastAuthor: string;
+  podcastThumbnail: string;
+  podcastAuthorEmail: string;
+  docs?: string;
+  itunesExplicit?: boolean;
+  itunesSubtitle?: string;
+  itunesSummary?: string;
+  itunesType?: FeedItunesType;
+  categories?: string[];
+  generator?: string;
+  geoRSS?: boolean;
+  language?: string;
+};
+const createPodcastAPI = async (data: PodcastInfo) => {
+  "use server";
   return await prisma.playlist.create({
     data: {
-      author: PodcastAuthor,
-      copyright: PodcastAuthor,
-      description: "funny code-ga podcast",
-      docs: "",
-      imageUrl: PodcastThumbnail,
-      itunesAuthor: PodcastAuthor,
-      itunesExplicit: false,
-      itunesImage: PodcastThumbnail,
-      itunesSubtitle: "subtitle",
-      itunesSummary: "the funny code-ga podcast",
-      itunesType: "episodic",
-      managingEditor: PodcastAuthor,
-      title: "code-ga podcast",
-      webMaster: PodcastAuthor,
+      author: data.podcastAuthor,
+      copyright: data.podcastAuthor,
+      description: data.description,
+      docs: data.docs || "",
+      imageUrl: data.podcastThumbnail,
+      itunesAuthor: data.podcastAuthor,
+      itunesExplicit:
+        data.itunesExplicit == undefined ? false : data.itunesExplicit,
+      itunesImage: data.podcastThumbnail,
+      itunesSubtitle: data.itunesSubtitle || "",
+      itunesSummary: data.itunesSummary || data.description,
+      itunesType: data.itunesType ?? "episodic",
+      managingEditor: data.podcastAuthor,
+      title: data.title,
+      webMaster: data.podcastAuthor,
       itunesOwner: {
-        create: {
-          email: PodcastAuthorEmail,
-          name: PodcastAuthor,
+        connectOrCreate: {
+          create: {
+            email: data.podcastAuthorEmail,
+            name: data.podcastAuthor,
+          },
+          where: {
+            email: data.podcastAuthorEmail,
+          },
         },
       },
+      categories: data.categories,
+      generator: data.generator,
+      geoRSS: data.geoRSS,
+      language: data.language,
     },
   });
 };
-export default function CreatePlaylist() {
-  return <></>;
+export default async function CreatePlaylist() {
+  const PodcastAuthor = "Code-ga";
+  const PodcastAuthorEmail = "code-ga@gmail.com";
+  const PodcastThumbnail = "https://cdn.discordapp.com/embed/avatars/2.png";
+  const playlist = await createPodcastAPI({
+    title: "code-ga Podcast",
+    description: "the funny code-ga podcast",
+    podcastAuthor: PodcastAuthor,
+    podcastAuthorEmail: PodcastAuthorEmail,
+    podcastThumbnail: PodcastThumbnail,
+  });
+  return <>{playlist.id}</>;
 }

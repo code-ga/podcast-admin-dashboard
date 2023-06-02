@@ -1,13 +1,18 @@
 import { ShowPlaylistInfo } from "~/components/ShowPlaylist";
 import { prisma } from "~/db";
 
-export default async function ListPlaylist() {
-  const playlist = await prisma.playlist.findMany({
+async function GetPlaylists() {
+  "use server";
+  return await prisma.playlist.findMany({
     include: {
       itunesCategory: true,
       itunesOwner: true,
     },
   });
+}
+
+export default async function ListPlaylist() {
+  const playlist = await GetPlaylists();
   return (
     <>
       {playlist.map((e) => (

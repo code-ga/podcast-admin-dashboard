@@ -16,11 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-indigo-950`}>
+      <body className={`${inter.className} bg-indigo-950 m-5 my-10 text-white`}>
         <Navbar></Navbar>
         {children}
       </body>
     </html>
   );
 }
-
