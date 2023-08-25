@@ -7,11 +7,13 @@ import { usePathname } from "next/navigation";
 export function Navbar() {
   return (
     <header className="flex items-center justify-between px-10 bg-indigo-900 border rounded-2xl">
-      <Image
-        src={Logo}
-        alt={""}
-        className="w-10 h-10 justify-self-start"
-      ></Image>
+      <Link href={"/"}>
+        <Image
+          src={Logo}
+          alt={""}
+          className="w-10 h-10 justify-self-start"
+        ></Image>
+      </Link>
       <div className="flex items-center justify-center ">
         <Item>
           <Link href={"/playlist"}>

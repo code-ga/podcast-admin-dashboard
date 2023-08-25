@@ -1,5 +1,5 @@
 "use server";
-import { NextResponse,NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "~/db";
 import { Podcast } from "podcast";
 import { SITE_URL } from "~/util/siteUrl";
@@ -20,6 +20,7 @@ export async function GET(
     include: {
       itunesCategory: true,
       itunesOwner: true,
+      item: true,
     },
   });
   if (!playlist) {
@@ -40,6 +41,12 @@ export async function GET(
 
     namespaces: { iTunes: true, podcast: true },
   });
+  for (const item of playlist.item) {
+    feed.addItem({
+      ...item,
+      content: item.content || undefined,
+    });
+  }
 
   return new NextResponse(feed.buildXml(), {
     headers: {

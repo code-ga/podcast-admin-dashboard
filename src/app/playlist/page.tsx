@@ -14,10 +14,10 @@ async function GetPlaylists() {
 export default async function ListPlaylist() {
   const playlist = await GetPlaylists();
   return (
-    <>
+    <div>
       {playlist.map((e) => (
         <ShowPlaylistInfo playlist={e} key={e.id} />
       ))}
-    </>
+    </div>
   );
 }

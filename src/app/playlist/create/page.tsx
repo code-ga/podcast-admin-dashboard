@@ -17,7 +17,7 @@ type PodcastInfo = {
   geoRSS?: boolean;
   language?: string;
 };
-const createPodcastAPI = async (data: PodcastInfo) => {
+export async function createPodcastAPI(data: PodcastInfo) {
   "use server";
   return await prisma.playlist.create({
     data: {
@@ -53,7 +53,7 @@ const createPodcastAPI = async (data: PodcastInfo) => {
       language: data.language,
     },
   });
-};
+}
 export default async function CreatePlaylist() {
   const PodcastAuthor = "Code-ga";
   const PodcastAuthorEmail = "code-ga@gmail.com";
@@ -65,5 +65,5 @@ export default async function CreatePlaylist() {
     podcastAuthorEmail: PodcastAuthorEmail,
     podcastThumbnail: PodcastThumbnail,
   });
-  return <>{playlist.id}</>;
+  return <div>{playlist.id}</div>;
 }

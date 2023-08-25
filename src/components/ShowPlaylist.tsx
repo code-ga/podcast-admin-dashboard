@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { FeedItunesCategory, FeedItunesOwner, Playlist } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,8 +10,7 @@ export const ShowPlaylistInfo: React.FC<{
   };
 }> = ({ playlist }) => {
   return (
-    <>
-      <Link href={`/playlist/${playlist.id}`}>
+    <Link href={`/playlist/${playlist.id}`}>
       <div className="flex items-center justify-between mt-5 border rounded-lg">
         <p className="flex items-center">
           <Image
@@ -27,6 +26,6 @@ export const ShowPlaylistInfo: React.FC<{
           </div>
         </p>
       </div>
-    </Link></>
+    </Link>
   );
 };
