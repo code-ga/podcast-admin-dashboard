@@ -1,1 +1,2 @@
 last vercel build command : npx prisma generate && next build
+postgres docker command: docker run --name podcast-postgres -e POSTGRES_PASSWORD=root -e POSTGRES_DB=podcast -e POSTGRES_USER=root -d -p 5432:5432 postgres:alpine
